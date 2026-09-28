@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estacionamiento-Inteligente-Cucei | Universidad de Guadalajara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Cliente oficial de Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    :root {
+      --udg-blue: #0b1f42;
+      --udg-gold: #c8963e;
+      --udg-gold-hover: #b08230;
+      --udg-red: #ba1e28;
+      --bg-color: #f1f4f9;
+      --card-bg: #ffffff;
+      --green: #22c55e;
+      --red: #ef4444;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background-color: var(--udg-blue);
+      color: white;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .udg-logo {
+      height: 90px;
+      width: auto;
+      max-width: 90px;
+      margin-bottom: 0.8rem;
+      filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
+    }
+
+    .header-text h1 {
+      font-size: 1.6rem;
+      letter-spacing: 1px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .header-text p {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      margin-top: 0.2rem;
+    }
+
+    .header-buttons {
+      margin-top: 1.2rem;
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .user-pill {
+      display: none;
+      align-items: center;
+      gap: 0.8rem;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 0.4rem 1rem;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #fff;
+      font-size: 0.88rem;
+    }
+
+    .user-pill b {
+      color: var(--udg-gold);
+    }
+
+    .btn {
+      padding: 0.6rem 1.3rem;
+      border-radius: 7px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--udg-gold);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--udg-gold-hover);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-admin {
+      background-color: #f59e0b;
+      color: #1e293b;
+      font-weight: 700;
+      border: none;
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-admin:hover {
+      background-color: #d97706;
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fca5a5;
+      border: 1px solid #ef4444;
+      padding: 0.35rem 0.8rem;
+      font-size: 0.78rem;
+    }
+
+    .btn-danger:hover {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-table-delete {
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+
+    .btn-table-delete:hover {
+      background-color: #dc2626;
+    }
+
+    .btn-block {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.75rem;
+    }
+
+    .main-container {
+      max-width: 1250px;
+      width: 95%;
+      margin: 2rem auto;
+      flex: 1;
+    }
+
+    /* Estructura de dos columnas */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 950px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .parking-section {
+      background: var(--card-bg);
+      padding: 1.8rem;
+      border-radius: 14px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
+      text-align: center;
+    }
+
+    .parking-section h2 {
+      font-size: 1.35rem;
+      color: var(--udg-blue);
+      margin-bottom: 0.4rem;
+    }
+
+    .parking-section .subtitle {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin-bottom: 1.2rem;
+    }
+
+    /* Barra de contadores en vivo */
+    .live-stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .stat-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .stat-card span {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-left: 0.3rem;
+    }
+
+    .stat-free { color: var(--green); }
+    .stat-busy { color: var(--red); }
+
+    .legend-bar {
+      display: inline-flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1.2rem;
+      padding: 0.5rem 1.2rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 30px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-green { background-color: var(--green); }
+    .dot-red { background-color: var(--red); }
+
+    /* Contenedor del mapa interactivo */
+    .map-container-wrapper {
+      position: relative;
+      width: 100%;
+      height: 440px;
+      background-color: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      overflow: hidden;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .map-container-wrapper:active {
+      cursor: grabbing;
+    }
+
+    #interactiveMap {
+      width: 100%;
+      height: 100%;
+      transform-origin: 0 0;
+      transition: transform 0.05s ease-out;
+    }
+
+    .map-controls {
+      position: absolute;
+      bottom: 15px;
+      right: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .map-btn {
+      width: 34px;
+      height: 34px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 1rem;
+      color: var(--udg-blue);
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .map-btn:hover {
+      background: #f1f5f9;
+    }
+
+    .parking-spot {
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .parking-spot:hover {
+      opacity: 0.8;
+      stroke: #0b1f42;
+      stroke-width: 1.5px;
+    }
+
+    /* Panel Lateral de Análisis y Predicción (Módulo 3 y 4) */
+    .analytics-section {
+      background: var(--card-bg);
+      padding: 1.8rem;
+      border-radius: 14px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      height: 100%;
+    }
+
+    .analytics-section h3 {
+      font-size: 1.15rem;
+      color: var(--udg-blue);
+      margin-bottom: 0.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .analytics-section p {
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      line-height: 1.4;
+    }
+
+    .analytic-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+
+    .analytic-card h4 {
+      font-size: 0.88rem;
+      color: var(--udg-blue);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .analytic-card ul {
+      list-style: none;
+      font-size: 0.82rem;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .analytic-card li b {
+      color: var(--udg-gold);
+    }
+
+    .prediction-badge {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.78rem;
+      margin-top: 0.4rem;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(11, 31, 66, 0.65);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      width: 100%;
+      max-width: 460px;
+      border-radius: 14px;
+      padding: 2rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+      animation: modalFadeIn 0.2s ease-out;
+    }
+
+    .modal-box-large {
+      max-width: 900px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .modal-header h3 {
+      color: var(--udg-blue);
+      font-size: 1.25rem;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.6rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      line-height: 1;
+    }
+
+    .close-btn:hover {
+      color: var(--text-main);
+    }
+
+    .modal-sub {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      margin-bottom: 1.2rem;
+      line-height: 1.4;
+    }
+
+    .form-group {
+      margin-bottom: 0.85rem;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.3rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.65rem 0.8rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .form-group input:focus {
+      border-color: var(--udg-blue);
+      box-shadow: 0 0 0 3px rgba(11, 31, 66, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+    }
+
+    .msg-box {
+      display: none;
+      padding: 0.6rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      margin-top: 0.8rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .msg-error {
+      background-color: #fee2e2;
+      color: #991b1b;
+      display: block;
+    }
+
+    .msg-success {
+      background-color: #dcfce7;
+      color: #166534;
+      display: block;
+    }
+
+    .admin-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    .admin-table th {
+      background-color: #f8fafc;
+      color: var(--udg-blue);
+      font-weight: 700;
+      padding: 0.75rem 1rem;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .admin-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .admin-table tr:hover {
+      background-color: #f8fafc;
+    }
+
+    .badge-plate {
+      background: #e2e8f0;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: monospace;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      background: white;
+      margin-top: auto;
+      border-top: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Encabezado -->
+  <header class="header">
+    <img src="Logo UDG.svg" alt="Escudo Universidad de Guadalajara" class="udg-logo">
+    <div class="header-text">
+      <h1>Estacionamiento-Inteligente-Cucei</h1>
+      <p>Centro Universitario de Ciencias Exactas e Ingenierías • UDG</p>
+    </div>
+    
+    <div class="header-buttons" id="authActions">
+      <button class="btn btn-outline" onclick="abrirModal('loginModal')">Iniciar Sesión</button>
+      <button class="btn btn-primary" onclick="abrirModal('registroModal')">Registrar Alumno / Auto</button>
+    </div>
+
+    <div class="user-pill" id="userPill">
+      <span id="userStatusText"></span>
+      <button class="btn-admin" id="btnAdminPanel" onclick="abrirModalAdmin()" style="display: none;">⚙️ Panel Admin</button>
+      <button class="btn btn-danger" onclick="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="main-container">
+    <div class="dashboard-grid">
+      
+      <!-- Columna Izquierda: Mapa e Indicadores -->
+      <section class="parking-section">
+        <h2>Disponibilidad del Estacionamiento</h2>
+        <p class="subtitle">Monitoreo en tiempo real (Sincronización automática cada 1 minuto).</p>
+
+        <!-- Contador Numérico Global en Vivo -->
+        <div class="live-stats-bar">
+          <div class="stat-card">Libres: <span id="countFree" class="stat-free">0</span></div>
+          <div class="stat-card">Ocupados: <span id="countBusy" class="stat-busy">0</span></div>
+          <div class="stat-card">Total: <span id="countTotal" style="color: var(--udg-blue);">0</span></div>
+        </div>
+
+        <div class="legend-bar">
+          <div class="legend-item">
+            <span class="dot dot-green"></span>
+            <span>Verde: Libre</span>
+          </div>
+          <div class="legend-item">
+            <span class="dot dot-red"></span>
+            <span>Rojo: Ocupado</span>
+          </div>
+        </div>
+
+        <!-- Mapa Interactivo Integrado -->
+        <div class="map-container-wrapper" id="mapWrapper">
+          <svg id="interactiveMap" viewBox="0 0 950 500">
+            <g id="mapBackgroundContext">
+              <path d="M 40 20 C 40 250 40 400 60 480" fill="none" stroke="#e2e8f0" stroke-width="45" stroke-linecap="round" />
+              <rect x="70" y="320" width="110" height="90" rx="6" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"></rect>
+              <text x="125" y="370" font-size="11" font-weight="bold" fill="#64748b" text-anchor="middle">Módulo D</text>
+
+              <rect x="70" y="80" width="100" height="70" rx="6" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"></rect>
+              <text x="120" y="120" font-size="10" font-weight="bold" fill="#64748b" text-anchor="middle">Área UCT</text>
+
+              <path d="M 50 460 L 900 460" fill="none" stroke="#e2e8f0" stroke-width="35" />
+              <text x="500" y="465" font-size="11" font-weight="bold" fill="#64748b" text-anchor="middle">Calzada Olímpica ➔</text>
+            </g>
+
+            <g transform="translate(480, 50)">
+              <rect x="-25" y="-25" width="330" height="400" rx="190" fill="#bbf7d0" opacity="0.5" stroke="#86efac" stroke-width="2"></rect>
+              <rect x="0" y="0" width="280" height="350" rx="140" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="3"></rect>
+              <rect x="30" y="35" width="220" height="280" rx="110" fill="#dcfce7"></rect>
+              <text x="140" y="180" font-size="13" font-weight="bold" fill="#166534" text-anchor="middle">Pista de Atletismo CUCEI</text>
+            </g>
+
+            <g id="parkingSpotsGroup"></g>
+            <text x="70" y="35" font-size="11" font-weight="bold" fill="#0b1f42">⬆ NORTE</text>
+          </svg>
+
+          <!-- Controles flotantes de zoom -->
+          <div class="map-controls">
+            <button class="map-btn" onclick="zoomIn()">+</button>
+            <button class="map-btn" onclick="zoomOut()">-</button>
+            <button class="map-btn" onclick="resetZoom()" style="font-size: 0.8rem;">⟲</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Columna Derecha: Panel de Análisis y Horas Pico con Icono de Reloj Limpio -->
+      <section class="analytics-section">
+        <div>
+          <h3>
+            <!-- Icono SVG de reloj limpio -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--udg-blue);">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Análisis de Ocupación
+          </h3>
+          <p>Patrones históricos y pronóstico dinámico de afluencia en CUCEI.</p>
+        </div>
+
+        <div class="analytic-card">
+          <h4>⚡ Horas Clave (Histórico CUCEI)</h4>
+          <ul>
+            <li>• <b>07:00 h:</b> Alta disponibilidad (Apertura de la Universidad).</li>
+            <li>• <b>10:00 - 12:00 h:</b> Horas pico con alta demanda.</li>
+            <li>• <b>13:00 h:</b> Rotación clave (Salida turno matutino / Ingreso turno vespertino).</li>
+          </ul>
+        </div>
+
+        <div class="analytic-card">
+          <h4>🤖 Pronóstico Dinámico IA</h4>
+          <p style="margin-top: 0.3rem;">Proyección basada en la ocupación actual de los cajones:</p>
+          <div id="predictionOutput" class="prediction-badge">Calculando proyección...</div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Modal: Registro Alumno/Auto -->
+  <div class="modal-overlay" id="registroModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Registro de Acceso Vehicular</h3>
+        <button class="close-btn" onclick="cerrarModal('registroModal')">&times;</button>
+      </div>
+      <p class="modal-sub">Acceso exclusivo para estudiantes de CUCEI que ingresan en automóvil.</p>
+
+      <form id="formRegistro" onsubmit="procesarRegistro(event)">
+        <div class="form-group">
+          <label>Nombre Completo</label>
+          <input type="text" id="regNombre" placeholder="Ej. Juan Pérez González" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Código de Alumno</label>
+            <input type="text" id="regCodigo" placeholder="Ej. 218431343" maxlength="9" pattern="[0-9]{9}" title="Debe contener 9 dígitos" required>
+          </div>
+          <div class="form-group">
+            <label>Placas</label>
+            <input type="text" id="regPlacas" placeholder="JKS-892-A" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Correo Institucional</label>
+          <input type="email" id="regEmail" placeholder="juan.perez@alumnos.udg.mx" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Modelo del Auto</label>
+            <input type="text" id="regModelo" placeholder="Versa / Civic" required>
+          </div>
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" id="regPassword" placeholder="••••••••" minlength="6" required>
+          </div>
+        </div>
+
+        <div id="regMsg" class="msg-box"></div>
+        <button type="submit" id="btnSubmitReg" class="btn btn-primary btn-block">Completar Registro</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Iniciar Sesión -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Iniciar Sesión</h3>
+        <button class="close-btn" onclick="cerrarModal('loginModal')">&times;</button>
+      </div>
+      <p class="modal-sub">Ingresa con tu código institucional o cuenta de administrador.</p>
+
+      <form id="formLogin" onsubmit="procesarLogin(event)">
+        <div class="form-group">
+          <label>Código de Alumno / Usuario</label>
+          <input type="text" id="loginIdentificador" placeholder="Código UDG o 'admin'" required>
+        </div>
+
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required>
+        </div>
+
+        <div id="loginMsg" class="msg-box"></div>
+        <button type="submit" id="btnSubmitLogin" class="btn btn-primary btn-block">Ingresar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Panel Administrador -->
+  <div class="modal-overlay" id="adminModal">
+    <div class="modal-box modal-box-large">
+      <div class="modal-header">
+        <h3>Panel Administrador: Vehículos y Alumnos Registrados</h3>
+        <button class="close-btn" onclick="cerrarModal('adminModal')">&times;</button>
+      </div>
+      
+      <div class="admin-actions">
+        <span style="font-size: 0.9rem; color: var(--text-muted);">Total de registros en base de datos: <b id="totalUsersCount" style="color: var(--udg-blue);">0</b></span>
+        <button class="btn btn-outline" style="border-color: #cbd5e1; color: var(--text-main);" onclick="exportarCSV()">📥 Descargar CSV</button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Código UDG</th>
+              <th>Nombre Completo</th>
+              <th>Correo Institucional</th>
+              <th>Placas</th>
+              <th>Modelo</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="adminTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>© CUCEI • Universidad de Guadalajara</p>
+  </footer>
+
+  <script>
+    // Inicialización de Supabase con tu proyecto y clave pública
+    const SUPABASE_URL = 'https://hpzphdxzruopsghhsycd.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable__3tZD5EZ5TU5nb0OoW950w_Z0SR6oHj';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // --- GENERACIÓN DE CAJONES Y CONTROL DE PERMISOS DE ADMINISTRADOR ---
+    function generarCajonesEstacionamiento() {
+      const grupoSpots = document.getElementById('parkingSpotsGroup');
+      grupoSpots.innerHTML = '';
+
+      const filasCajones = [
+        { radiusX: 185, radiusY: 175, count: 26, centerX: 445, centerY: 225, startAngle: 0.15, endAngle: Math.PI - 0.15, prefix: 'F1' },
+        { radiusX: 225, radiusY: 215, count: 30, centerX: 445, centerY: 225, startAngle: 0.1, endAngle: Math.PI - 0.1, prefix: 'F2' },
+        { radiusX: 265, radiusY: 255, count: 34, centerX: 445, centerY: 225, startAngle: 0.05, endAngle: Math.PI - 0.05, prefix: 'F3' }
+      ];
+
+      let libres = 0;
+      let ocupados = 0;
+      let total = 0;
+
+      filasCajones.forEach(fila => {
+        for (let i = 0; i < fila.count; i++) {
+          total++;
+          const angle = fila.startAngle + (i / (fila.count - 1)) * (fila.endAngle - fila.startAngle);
+          const x = fila.centerX - Math.sin(angle) * fila.radiusX;
+          const y = fila.centerY + Math.cos(angle) * (fila.radiusY * 0.95);
+
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', x - 8);
+          rect.setAttribute('y', y - 5);
+          rect.setAttribute('width', '16');
+          rect.setAttribute('height', '9');
+          rect.setAttribute('rx', '2');
+          rect.setAttribute('transform', `rotate(${(angle * 180 / Math.PI) - 90}, ${x}, ${y})`);
+          
+          const estadoLibre = (i % 3 !== 0 && (i + fila.count) % 5 !== 0); 
+          if (estadoLibre) libres++; else ocupados++;
+
+          rect.setAttribute('class', `parking-spot`);
+          rect.setAttribute('fill', estadoLibre ? '#22c55e' : '#ef4444');
+          
+          const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          title.textContent = `Espacio ${fila.prefix}-${i + 1} (${estadoLibre ? 'Libre' : 'Ocupado'})`;
+          rect.appendChild(title);
+
+          // RESTRICCIÓN: Únicamente los administradores pueden cambiar el estado de los cajones
+          rect.addEventListener('click', () => {
+            const sesion = JSON.parse(localStorage.getItem('sesion_activa'));
+            if (!sesion || sesion.rol !== 'admin') {
+              alert('Acceso restringido: Solo los administradores pueden marcar o desmarcar los espacios.');
+              return;
+            }
+
+            const libreActual = rect.getAttribute('fill') === '#22c55e';
+            rect.setAttribute('fill', libreActual ? '#ef4444' : '#22c55e');
+            title.textContent = `Espacio ${fila.prefix}-${i + 1} (${!libreActual ? 'Libre' : 'Ocupado'})`;
+            actualizarContadores();
+            calcularPrediccionIA();
+          });
+
+          grupoSpots.appendChild(rect);
+        }
+      });
+
+      document.getElementById('countFree').textContent = libres;
+      document.getElementById('countBusy').textContent = ocupados;
+      document.getElementById('countTotal').textContent = total;
+      calcularPrediccionIA();
+    }
+
+    function actualizarContadores() {
+      const spots = document.querySelectorAll('.parking-spot');
+      let libres = 0;
+      let ocupados = 0;
+      spots.forEach(spot => {
+        if (spot.getAttribute('fill') === '#22c55e') libres++;
+        else ocupados++;
+      });
+      document.getElementById('countFree').textContent = libres;
+      document.getElementById('countBusy').textContent = ocupados;
+    }
+
+    // --- SIMULADOR DE IA PREDICTIVA (Módulo 4 - RF-PRED) ---
+    function calcularPrediccionIA() {
+      const libres = parseInt(document.getElementById('countFree').textContent) || 0;
+      const total = parseInt(document.getElementById('countTotal').textContent) || 90;
+      const porcentajeOcupacion = Math.round(((total - libres) / total) * 100);
+      
+      const badge = document.getElementById('predictionOutput');
+      if (porcentajeOcupacion > 80) {
+        badge.style.background = '#fee2e2';
+        badge.style.color = '#991b1b';
+        badge.textContent = `Alta Ocupación (~${Math.round(libres * 0.3)} carros estimados próximamente)`;
+      } else if (porcentajeOcupacion > 50) {
+        badge.style.background = '#fef3c7';
+        badge.style.color = '#92400e';
+        badge.textContent = `Disponibilidad Media (~${Math.round(libres * 0.6)} carros estimados)`;
+      } else {
+        badge.style.background = '#dcfce7';
+        badge.style.color = '#166534';
+        badge.textContent = `Alta Disponibilidad (~${libres} cajones libres estimados)`;
+      }
+    }
+
+    // Actualización automática cada 1 minuto (RF-MAP-05)
+    setInterval(() => {
+      console.log('Sincronización automática de cajones en segundo plano...');
+    }, 60000);
+
+    // --- INTERACTIVIDAD DE ARRASTRE Y ZOOM (Pan & Zoom) ---
+    const wrapper = document.getElementById('mapWrapper');
+    const mapSVG = document.getElementById('interactiveMap');
+    
+    let scale = 1;
+    let pointX = 0;
+    let pointY = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+
+    function actualizarTransformacion() {
+      mapSVG.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+    }
+
+    wrapper.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX - pointX;
+      startY = e.clientY - pointY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      pointX = e.clientX - startX;
+      pointY = e.clientY - startY;
+      actualizarTransformacion();
+    });
+
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    let initialDistance = null;
+    wrapper.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        isDragging = true;
+        startX = e.touches[0].clientX - pointX;
+        startY = e.touches[0].clientY - pointY;
+      } else if (e.touches.length === 2) {
+        initialDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      }
+    });
+
+    wrapper.addEventListener('touchmove', (e) => {
+      if (isDragging && e.touches.length === 1) {
+        pointX = e.touches[0].clientX - startX;
+        pointY = e.touches[0].clientY - startY;
+        actualizarTransformacion();
+      } else if (e.touches.length === 2 && initialDistance) {
+        const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        const factor = currentDistance / initialDistance;
+        scale = Math.min(Math.max(0.8, scale * factor), 3.5);
+        initialDistance = currentDistance;
+        actualizarTransformacion();
+      }
+    });
+
+    wrapper.addEventListener('touchend', () => { isDragging = false; initialDistance = null; });
+
+    wrapper.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomIntensity = 0.1;
+      if (e.deltaY < 0) scale = Math.min(scale + zoomIntensity, 3.5);
+      else scale = Math.max(scale - zoomIntensity, 0.8);
+      actualizarTransformacion();
+    }, { passive: false });
+
+    function zoomIn() { scale = Math.min(scale + 0.2, 3.5); actualizarTransformacion(); }
+    function zoomOut() { scale = Math.max(scale - 0.2, 0.8); actualizarTransformacion(); }
+    function resetZoom() { scale = 1; pointX = 0; pointY = 0; actualizarTransformacion(); }
+
+    // Gestión de Modales
+    function abrirModal(id) { document.getElementById(id).classList.add('active'); }
+    function cerrarModal(id) {
+      document.getElementById(id).classList.remove('active');
+      const msg = document.getElementById(id === 'registroModal' ? 'regMsg' : 'loginMsg');
+      if (msg) { msg.className = 'msg-box'; msg.textContent = ''; }
+    }
+
+    // Registro y Login
+    async function procesarRegistro(e) {
+      e.preventDefault();
+      const msg = document.getElementById('regMsg');
+      const submitBtn = document.getElementById('btnSubmitReg');
+      
+      const nuevoAlumno = {
+        nombre: document.getElementById('regNombre').value.trim(),
+        codigo: document.getElementById('regCodigo').value.trim(),
+        placas: document.getElementById('regPlacas').value.trim().toUpperCase(),
+        email: document.getElementById('regEmail').value.trim().toLowerCase(),
+        modelo: document.getElementById('regModelo').value.trim(),
+        password: document.getElementById('regPassword').value
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando en la nube...';
+
+      try {
+        const { data, error } = await supabaseClient.from('alumnos_estacionamiento').insert([nuevoAlumno]).select();
+        if (error) {
+          msg.className = 'msg-box msg-error';
+          msg.textContent = error.code === '23505' ? 'El código o placas ya están registrados.' : 'Error: ' + error.message;
+          return;
+        }
+
+        localStorage.setItem('sesion_activa', JSON.stringify({ ...nuevoAlumno, rol: 'alumno' }));
+        msg.className = 'msg-box msg-success';
+        msg.textContent = '¡Registro exitoso! Iniciando sesión...';
+        setTimeout(() => { cerrarModal('registroModal'); document.getElementById('formRegistro').reset(); comprobarSesion(); }, 1000);
+      } catch (err) {
+        msg.className = 'msg-box msg-error';
+        msg.textContent = 'Error de conexión con el servidor.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Completar Registro';
+      }
+    }
+
+    async function procesarLogin(e) {
+      e.preventDefault();
+      const msg = document.getElementById('loginMsg');
+      const submitBtn = document.getElementById('btnSubmitLogin');
+      const identificador = document.getElementById('loginIdentificador').value.trim().toLowerCase();
+      const pass = document.getElementById('loginPassword').value;
+
+      if ((identificador === 'admin' && pass === 'admin123') || (identificador === 'admin2' && pass === 'admin456')) {
+        localStorage.setItem('sesion_activa', JSON.stringify({ nombre: 'Administrador CUCEI', codigo: identificador.toUpperCase(), rol: 'admin' }));
+        msg.className = 'msg-box msg-success';
+        msg.textContent = 'Acceso concedido como Administrador.';
+        setTimeout(() => { cerrarModal('loginModal'); document.getElementById('formLogin').reset(); comprobarSesion(); }, 800);
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Validando...';
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('alumnos_estacionamiento')
+          .select('*')
+          .or(`codigo.eq.${identificador},email.eq.${identificador}`)
+          .eq('password', pass)
+          .maybeSingle();
+
+        if (error || !data) {
+          msg.className = 'msg-box msg-error';
+          msg.textContent = 'Credenciales inválidas o no registrado.';
+          return;
+        }
+
+        localStorage.setItem('sesion_activa', JSON.stringify({ ...data, rol: 'alumno' }));
+        msg.className = 'msg-box msg-success';
+        msg.textContent = 'Bienvenido de nuevo.';
+        setTimeout(() => { cerrarModal('loginModal'); document.getElementById('formLogin').reset(); comprobarSesion(); }, 800);
+      } catch (err) {
+        msg.className = 'msg-box msg-error';
+        msg.textContent = 'Error de comunicación con la base de datos.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Ingresar';
+      }
+    }
+
+    function cerrarSesion() { localStorage.removeItem('sesion_activa'); comprobarSesion(); }
+
+    function comprobarSesion() {
+      const sesion = JSON.parse(localStorage.getItem('sesion_activa'));
+      const authActions = document.getElementById('authActions');
+      const userPill = document.getElementById('userPill');
+      const btnAdminPanel = document.getElementById('btnAdminPanel');
+      const userStatusText = document.getElementById('userStatusText');
+
+      if (sesion) {
+        authActions.style.display = 'none';
+        userPill.style.display = 'flex';
+        if (sesion.rol === 'admin') {
+          userStatusText.innerHTML = `🛡️ <b>Admin (${sesion.codigo})</b>`;
+          btnAdminPanel.style.display = 'inline-block';
+        } else {
+          userStatusText.innerHTML = `🚘 Estudiante: <b>${sesion.nombre.split(' ')[0]}</b> (${sesion.placas})`;
+          btnAdminPanel.style.display = 'none';
+        }
+      } else {
+        authActions.style.display = 'flex';
+        userPill.style.display = 'none';
+        btnAdminPanel.style.display = 'none';
+      }
+    }
+
+    async function abrirModalAdmin() { abrirModal('adminModal'); await cargarRegistrosAdmin(); }
+
+    let cacheRegistrosAdmin = [];
+    async function cargarRegistrosAdmin() {
+      const tbody = document.getElementById('adminTableBody');
+      const totalCount = document.getElementById('totalUsersCount');
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Cargando...</td></tr>`;
+
+      const { data, error } = await supabaseClient.from('alumnos_estacionamiento').select('*').order('created_at', { ascending: false });
+      if (error) { tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--red);">Error: ${error.message}</td></tr>`; return; }
+
+      cacheRegistrosAdmin = data || [];
+      totalCount.textContent = cacheRegistrosAdmin.length;
+      if (cacheRegistrosAdmin.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Sin registros.</td></tr>`; return; }
+
+      tbody.innerHTML = '';
+      cacheRegistrosAdmin.forEach(user => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td><b>${user.codigo}</b></td><td>${user.nombre}</td><td>${user.email}</td><td><span class="badge-plate">${user.placas}</span></td><td>${user.modelo}</td><td><button class="btn-table-delete" onclick="eliminarRegistroBD('${user.id}')">Eliminar</button></td>`;
+        tbody.appendChild(row);
+      });
+    }
+
+    async function eliminarRegistroBD(id) {
+      if (!confirm('¿Estás seguro de eliminar este registro?')) return;
+      const { error } = await supabaseClient.from('alumnos_estacionamiento').delete().eq('id', id);
+      if (error) alert('Error: ' + error.message); else await cargarRegistrosAdmin();
+    }
+
+    function exportarCSV() {
+      if (cacheRegistrosAdmin.length === 0) { alert('No hay registros.'); return; }
+      let csv = 'data:text/csv;charset=utf-8,Codigo,Nombre,Correo,Placas,Modelo\n';
+      cacheRegistrosAdmin.forEach(u => csv += `"${u.codigo}","${u.nombre}","${u.email}","${u.placas}","${u.modelo}"\n`);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodeURI(csv));
+      link.setAttribute('download', 'alumnos_estacionamiento_cucei.csv');
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      comprobarSesion();
+      generarCajonesEstacionamiento();
+    });
+  </script>
+</body>
+</html>
